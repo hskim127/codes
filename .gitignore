@@ -1,0 +1,10 @@
+
+*.pyc
+
+.ipynb_checkpoints/SVRG-checkpoint.ipynb
+
+Untitled.ipynb
+
+SVRG.py
+
+.ipynb_checkpoints/Untitled-checkpoint.ipynb
