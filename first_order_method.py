@@ -80,7 +80,9 @@ class FirstOrderMethod:
     
     def svrg(self):
         n_samples = self.problem.get_n_sample()
+        eta = self.eta
         max_T = n_samples*self.max_pass
+        alpha = 0.9
         t = 0
         
         while True:
@@ -101,8 +103,15 @@ class FirstOrderMethod:
                 # Compute the svrg step
                 g = self.problem.compute_component_gradient(i, False)
                 - self.problem.compute_component_gradient(i, True) + g_old
+                
+                # Step-size rescaling
+                eta = alpha*eta if eta > 1e-4 else self.eta
+                
                 # Gradient update
-                self.problem.update(-self.eta*g)
+                self.problem.update(-eta*g)
+                
+
+
             t += self.epoch_size
 
     def set_epoch_size(self, _epoch_size_):
