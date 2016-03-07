@@ -51,28 +51,35 @@ class BinaryLogisticRegression:
     def compute_full_gradient(self):
         X, y = self.x_trn, np.array(self.y_trn)
         n_sample = self.n_trn_samples
-        w = self.w
+        _w_ = self.w
+        _lam_ = self.lam
 
-        self.grad_coeff = -1/(1+np.exp(y*X.dot(w)))*y
-        self.full_grad = X.transpose().dot(self.grad_coeff)
-        self.full_grad /= float(n_sample)
-        
-        if self.lam != 0:
-            self.full_grad += self.lam*w
-        return self.full_grad
+
+        _grad_coeff_ = -1/(1+np.exp(y*X.dot(_w_)))*y
+        _full_grad_ = X.transpose().dot(_grad_coeff_)
+        _full_grad_ /= float(n_sample)
+        if _lam_ != 0:
+            _full_grad_ += _lam_*_w_
+
+        self.grad_coeff = _grad_coeff_
+        self.full_grad = _full_grad_
+
+        return _full_grad_
 
     def compute_component_gradient(self, sample_idx, is_old=False):
         x, y = self.x_trn[sample_idx,:], self.y_trn[sample_idx]
-        w = self.w
-        
-        self.component_grad = self.grad_coeff[sample_idx]*x if is_old else -y/(1+np.exp(y*x.dot(w)))*x
-        if self.lam != 0:
-            self.full_grad += self.lam*w
+        _w_ = self.w
+        _lam_ = self.lam
 
-        return self.component_grad
+        _component_grad_ = self.grad_coeff[sample_idx]*x if is_old else -y/(1+np.exp(y*x.dot(_w_)))*x
+        if _lam_ != 0:
+            _component_grad_ += _lam_*_w_
+
+        # self.component_grad = _component_grad_
+        return _component_grad_
     
     def update(self, update_step):
-        # 여기부터... 왜 갑자기 지랄이여 =_=.. i sampling 하는 걸 np.random.rand_int 로 array로 하고, 각 SGD iteration 마다 array로 접근하게 만든 후에 이렇게 됨
+        update_step
         self.w += update_step
         
     def get_n_sample(self,is_training=True):

@@ -115,18 +115,22 @@ class FirstOrderMethod:
                 break
 
             # Uniform Sampling w/ replacement
-            i = np.random.randint(low=0,high=_n_samples_,size=_n_samples_).tolist()
+            # ii = np.random.randint(low=0,high=_n_samples_,size=_epoch_size_)
             # In the PIM setting, we don't count this computation.
             t += _n_samples_
             for s in xrange(_epoch_size_):
+                # Uniform Sampling w/ replacement
+                # i = ii[s]
+                i = random.randint(0,_n_samples_-1)
                 # Compute the svrg step
-                g = _problem_.compute_component_gradient(i[s], False) - _problem_.compute_component_gradient(i[s], True) + g_old
-                
+                g = _problem_.compute_component_gradient(i, False) - _problem_.compute_component_gradient(i, True) + g_old
                 # Step-size rescaling
                 _eta_ = alpha*_eta_ if _eta_ > 1e-4 else _eta_init_
 
+
                 # Gradient update
-                _problem_.update(-_eta_*g)
+                _problem_.update(-_eta_*np.array(g.tolist()[0]))
+
             t += _epoch_size_
         self.problem = _problem_
     # SVRG end
