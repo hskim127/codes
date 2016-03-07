@@ -33,86 +33,103 @@ class FirstOrderMethod:
         elif self.method == 'svrg':
             self.svrg()
 
+    # Full gradient descent start
     def full_gradient_descent(self):
-        n_samples = self.problem.get_n_sample()
-        max_T = n_samples*self.max_pass
+        # Local copy
+        _n_samples_ = self.problem.get_n_sample()
+        _max_T_ = _n_samples_*self.max_pass
+        _problem_ = self.problem
+        _epsilon_ = self.epsilon
+        _eta_ = self.eta
+
         t = 0
         while True:
             # Compute the component gradient
-            g = self.problem.compute_full_gradient()
+            g = _problem_.compute_full_gradient()
 
             # Save the training results
             self.compute_iteration_info(g,t)
 
             # Check the stopping criterion
-            if t > max_T or self.results['norm_grad'][-1] < self.epsilon:
+            if t > _max_T_ or self.results['norm_grad'][-1] < _epsilon_:
                 break
 
             # Gradient update
-            self.problem.update(-self.eta*g)
-            t += n_samples
+            _problem_.update(-_eta_*g)
+            t += _n_samples_
+        self.problem = _problem_
+    # Full gradient descent end
 
-            
+    # SGD start
     def stochastic_gradient_descent(self):
-        n_samples = self.problem.get_n_sample()
-        max_T = n_samples*self.max_pass
+        # Local copy
+        _n_samples_ = self.problem.get_n_sample()
+        _max_T_ = _n_samples_*self.max_pass
+        _problem_ = self.problem
+        _epsilon_ = self.epsilon
+        _eta_ = self.eta
+
         t = 0
-
-        # Save the training results
-        self.compute_iteration_info(self.problem.compute_full_gradient(),t)
-
         while True:
             # Uniform Sampling
-            i = random.randint(0, n_samples-1)
+            i = random.randint(0, _n_samples_-1)
             # Compute the component gradient
-            g = self.problem.compute_component_gradient(i, False)
-            # Gradient update
-            self.problem.update(-self.eta/(t+1.0)*g)
-            t += 1
+            g = _problem_.compute_component_gradient(i, False)
 
             # Save the training results
-            if t%n_samples == 0:
-                self.compute_iteration_info(self.problem.compute_full_gradient(),t)
+            if t%_n_samples_ == 0:
+                self.compute_iteration_info(g,t)
 
                 # Check the stopping criterion
-                if t > max_T or self.results['norm_grad'][-1] < self.epsilon:
+                if t > _max_T_ or self.results['norm_grad'][-1] < _epsilon_:
                     break
-    
+
+            # Gradient update
+            _problem_.update(-_eta_/(t+1.0)*g)
+            t += 1
+        self.problem = _problem_
+    # SGD end
+
+    # SVRG start
     def svrg(self):
-        n_samples = self.problem.get_n_sample()
-        eta = self.eta
-        max_T = n_samples*self.max_pass
+        # Local copy
+        _n_samples_ = self.problem.get_n_sample()
+        _max_T_ = _n_samples_*self.max_pass
+        _problem_ = self.problem
+        _epoch_size_ = self.epoch_size
+        _epsilon_ = self.epsilon
+        _eta_init_ = self.eta
+        _eta_ = self.eta
+
         alpha = 0.9
         t = 0
-        
         while True:
             # Compute the full gradient
-            g_old = self.problem.compute_full_gradient()
+            g_old = _problem_.compute_full_gradient()
 
             # Save the training results
             self.compute_iteration_info(g_old,t)
 
             # Check the stopping criterion
-            if t > max_T or self.results['norm_grad'][-1] < self.epsilon:
+            if t > _max_T_ or self.results['norm_grad'][-1] < _epsilon_:
                 break
 
-            t += n_samples
-            for s in xrange(self.epoch_size):
-                # Uniform Sampling
-                i = random.randint(0, n_samples-1)
+            # Uniform Sampling w/ replacement
+            i = np.random.randint(low=0,high=_n_samples_,size=_n_samples_).tolist()
+            # In the PIM setting, we don't count this computation.
+            t += _n_samples_
+            for s in xrange(_epoch_size_):
                 # Compute the svrg step
-                g = self.problem.compute_component_gradient(i, False)
-                - self.problem.compute_component_gradient(i, True) + g_old
+                g = _problem_.compute_component_gradient(i[s], False) - _problem_.compute_component_gradient(i[s], True) + g_old
                 
                 # Step-size rescaling
-                eta = alpha*eta if eta > 1e-4 else self.eta
-                
+                _eta_ = alpha*_eta_ if _eta_ > 1e-4 else _eta_init_
+
                 # Gradient update
-                self.problem.update(-eta*g)
-                
-
-
-            t += self.epoch_size
+                _problem_.update(-_eta_*g)
+            t += _epoch_size_
+        self.problem = _problem_
+    # SVRG end
 
     def set_epoch_size(self, _epoch_size_):
         self.epoch_size = _epoch_size_

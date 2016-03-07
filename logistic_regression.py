@@ -72,6 +72,7 @@ class BinaryLogisticRegression:
         return self.component_grad
     
     def update(self, update_step):
+        # 여기부터... 왜 갑자기 지랄이여 =_=.. i sampling 하는 걸 np.random.rand_int 로 array로 하고, 각 SGD iteration 마다 array로 접근하게 만든 후에 이렇게 됨
         self.w += update_step
         
     def get_n_sample(self,is_training=True):
