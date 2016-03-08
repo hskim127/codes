@@ -60,7 +60,7 @@ class FirstOrderMethod:
         self.problem = _problem_
     # Full gradient descent end
 
-    # SGD start
+    # SGD start : It may not work. I don't use this function since I just compare SVRG w/ GD, not SGD.
     def stochastic_gradient_descent(self):
         # Local copy
         _n_samples_ = self.problem.get_n_sample()
@@ -103,6 +103,7 @@ class FirstOrderMethod:
 
         alpha = 0.9
         t = 0
+        t_tmp = 0 # To match the number of computations of Full gradient algorithm
         while True:
             # Compute the full gradient
             g_old = _problem_.compute_full_gradient()
@@ -111,27 +112,25 @@ class FirstOrderMethod:
             self.compute_iteration_info(g_old,t)
 
             # Check the stopping criterion
-            if t > _max_T_ or self.results['norm_grad'][-1] < _epsilon_:
+            if t_tmp > _max_T_ or self.results['norm_grad'][-1] < _epsilon_:
                 break
 
             # Uniform Sampling w/ replacement
-            # ii = np.random.randint(low=0,high=_n_samples_,size=_epoch_size_)
+            ii = np.random.randint(low=0,high=_n_samples_,size=_epoch_size_)
             # In the PIM setting, we don't count this computation.
             t += _n_samples_
-            for s in xrange(_epoch_size_):
-                # Uniform Sampling w/ replacement
-                # i = ii[s]
-                i = random.randint(0,_n_samples_-1)
+            for i in ii:
                 # Compute the svrg step
                 g = _problem_.compute_component_gradient(i, False) - _problem_.compute_component_gradient(i, True) + g_old
+
                 # Step-size rescaling
                 _eta_ = alpha*_eta_ if _eta_ > 1e-4 else _eta_init_
-
 
                 # Gradient update
                 _problem_.update(-_eta_*np.array(g.tolist()[0]))
 
             t += _epoch_size_
+            t_tmp += _epoch_size_
         self.problem = _problem_
     # SVRG end
 
